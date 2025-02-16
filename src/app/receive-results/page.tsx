@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import MessageWindow from "@/app/receive-results/messagewindow";
 import Image from "next/image"; // Add this import for Image handling
+import { Suspense } from "react";
 
 interface MatchItem {
   id: string;
@@ -24,6 +25,14 @@ interface PendingMessage {
   senderId: string;
   senderName: string;
   timestamp: Date;
+}
+
+function ReceiveResultsWrapper() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <ReceiveResults />
+    </Suspense>
+  );
 }
 
 export default function ReceiveResults() {
