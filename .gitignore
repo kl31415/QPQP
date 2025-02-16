@@ -37,4 +37,4 @@ jspm_packages
 .node_repl_history
 .next
 
-backend/models
+backend/models/GoogleNews-vectors-negative300.bin
