@@ -10,6 +10,7 @@ import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import Image from "next/image";
 
 export default function HomePage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function HomePage() {
   const { isAuthenticated, user, token, logout } = useAuth();
   const controls = useAnimation();
   const { toast } = useToast();
-  
+
   const text = "I want to...";
 
   // Typing animation
@@ -80,8 +81,8 @@ export default function HomePage() {
 
     // Handle Other category
     const finalCategory = category === "Other" && otherCategoryDescription 
-    ? otherCategoryDescription // Already includes "other: " prefix
-    : category;
+      ? otherCategoryDescription // Already includes "other: " prefix
+      : category;
 
     if (!finalCategory) {
       toast({
@@ -152,9 +153,25 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background relative">
+    <div className="flex flex-col items-center justify-center min-h-screen relative">
+      {/* Wavy Background */}
+      <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-green-400 via-blue-500 to-teal-400 opacity-75">
+        <div className="w-full h-full bg-[url('/waves.svg')] bg-cover bg-center opacity-50"></div>
+      </div>
+
+      {/* Logo in the top-left corner */}
+      <div className="absolute top-8 left-8 cursor-pointer z-10" onClick={() => router.push('/')}>
+        <Image
+          src="/favicon.ico" // Path to your logo in the public folder
+          alt="Logo"
+          width={60} // Adjust the size as needed
+          height={60}
+          className="rounded-full" // Optional: Add styling if needed
+        />
+      </div>
+
       {/* User Status Button */}
-      <div className="absolute top-4 right-4 user-dropdown">
+      <div className="absolute top-8 right-8 user-dropdown z-10">
         {isAuthenticated ? (
           <div className="relative">
             <Button
@@ -188,7 +205,7 @@ export default function HomePage() {
       </div>
 
       <motion.h1
-        className="text-4xl md:text-6xl font-semibold mb-8 md:mb-12"
+        className="text-4xl md:text-6xl font-semibold mb-8 md:mb-12 z-10"
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
       >
@@ -196,7 +213,7 @@ export default function HomePage() {
       </motion.h1>
 
       <motion.div
-        className="flex space-x-8"
+        className="flex space-x-8 z-10"
         initial={{ opacity: 0 }}
         animate={controls}
         transition={{ delay: 2, duration: 1 }}
@@ -228,7 +245,7 @@ export default function HomePage() {
       </motion.div>
 
       {(showReceiveForm || showOfferForm) && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-20">
           <Card className="p-8 w-full max-w-2xl bg-white dark:bg-gray-900 rounded-lg shadow-lg relative">
             <h2 className="text-3xl font-semibold mb-8">
               {showOfferForm ? 'Create Offer' : 'Find Product'}

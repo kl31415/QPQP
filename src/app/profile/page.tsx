@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/authContext';
+import { useRouter } from 'next/router';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { History, Clock, Package, User, ShoppingCart } from 'lucide-react';
+import { History, Clock, Package, User, ShoppingCart, ArrowLeft } from 'lucide-react';
+import Link from 'next/link'; // Import Link for navigation
 
 // Mock data - replace with actual API calls
 const mockRequests = [
@@ -36,6 +39,10 @@ export default function ProfilePage() {
     }
   };
 
+  const handleBack = () => {
+    window.history.back();
+  };
+
   // Stats calculations
   const stats = {
     totalRequests: requests.length,
@@ -47,6 +54,30 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-6xl mx-auto space-y-8">
+        {/* Logo Link */}
+        <Link href="/" passHref>
+          <div className="absolute top-8 left-8 cursor-pointer">
+            <Image
+              src="/favicon.ico" // Path to your logo in the public folder
+              alt="Logo"
+              width={60} // Adjust the size as needed
+              height={60}
+              className="rounded-full" // Optional: Add styling if needed
+            />
+          </div>
+        </Link>
+
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mb-4 -mt-4"
+          onClick={handleBack}
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+
         {/* Profile Header */}
         <div className="flex items-center gap-6">
           <div className="relative group">

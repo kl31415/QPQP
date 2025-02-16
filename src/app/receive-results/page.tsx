@@ -8,6 +8,7 @@ import { useAuth } from "@/context/authContext";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import MessageWindow from "@/app/receive-results/messagewindow";
+import Image from "next/image"; // Add this import for Image handling
 
 interface MatchItem {
   id: string;
@@ -15,6 +16,14 @@ interface MatchItem {
   category: string;
   distance: number;
   details: string;
+  userId: string;
+  userName: string;
+}
+
+interface PendingMessage {
+  senderId: string;
+  senderName: string;
+  timestamp: Date;
 }
 
 export default function ReceiveResults() {
@@ -23,23 +32,55 @@ export default function ReceiveResults() {
   const [items, setItems] = useState<MatchItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { toast } = useToast();
   
-  // New state for messaging and pagination
   const [activeChat, setActiveChat] = useState<string | null>(null);
+  const [activeChatName, setActiveChatName] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(0);
+  const [pendingMessages, setPendingMessages] = useState<PendingMessage[]>([]);
   const itemsPerPage = 4;
 
-  // Calculate total pages
   const totalPages = Math.ceil(items.length / itemsPerPage);
   
-  // Get current page items
   const getCurrentPageItems = () => {
     const start = currentPage * itemsPerPage;
     const end = start + itemsPerPage;
     return items.slice(start, end);
   };
+
+  useEffect(() => {
+    const fetchPendingMessages = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await fetch(`http://localhost:4002/pending-messages?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setPendingMessages(data);
+          
+          if (data.length > 0) {
+            toast({
+              title: "New Messages",
+              description: `You have ${data.length} new message${data.length > 1 ? 's' : ''}`,
+              action: <ToastAction altText="View" onClick={() => {
+                setActiveChat(data[0].senderId);
+                setActiveChatName(data[0].senderName);
+              }}>View</ToastAction>,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch pending messages:', error);
+      }
+    };
+
+    if (isAuthenticated) {
+      fetchPendingMessages();
+      const interval = setInterval(fetchPendingMessages, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, user?.id, toast]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -97,8 +138,24 @@ export default function ReceiveResults() {
     fetchData();
   }, [searchParams, toast]);
 
+  const handleContactClick = (userId: string, userName: string) => {
+    setActiveChat(userId);
+    setActiveChatName(userName);
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center bg-background p-8">
+      {/* Logo */}
+      <div className="absolute top-8 left-8 cursor-pointer" onClick={() => router.push('/')}>
+        <Image
+          src="/favicon.ico" // Path to your logo in the public folder
+          alt="Logo"
+          width={60} // Adjust the size as needed
+          height={60}
+          className="rounded-full" // Optional: Add styling if needed
+        />
+      </div>
+
       <h1 className="text-4xl font-bold mb-6">Results</h1>
 
       {isLoading ? (
@@ -139,7 +196,7 @@ export default function ReceiveResults() {
                     <p><strong>Distance:</strong> {item.distance} miles</p>
                     <p><strong>Details:</strong> {item.details}</p>
                     <Button 
-                      onClick={() => setActiveChat(item.id)}
+                      onClick={() => handleContactClick(item.userId, item.userName)}
                       className="mt-4"
                     >
                       Contact
@@ -182,8 +239,12 @@ export default function ReceiveResults() {
 
           <MessageWindow
             recipientId={activeChat || ''}
+            recipientName={activeChatName}
             isOpen={!!activeChat}
-            onClose={() => setActiveChat(null)}
+            onClose={() => {
+              setActiveChat(null);
+              setActiveChatName('');
+            }}
           />
         </>
       )}
