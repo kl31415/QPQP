@@ -4,8 +4,8 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 
 interface User {
   id: string;
-  email: string;
-  name: string; // Added name field
+  email: string | null;
+  name: string;
 }
 
 interface AuthContextType {

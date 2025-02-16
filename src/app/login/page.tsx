@@ -3,50 +3,70 @@
 import { useState } from "react";
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
+import { auth, googleProvider, signInWithPopup, signInWithEmailAndPassword } from "@/lib/firebaseConfig";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login } = useAuth();
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
-      if (username === "test" && password === "password") {
-        const token = "dummy-jwt-token";
-        const userInfo = { 
-          id: "123", 
-          email: "test@example.com", 
-          name: username 
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      if (user) {
+        const token = await user.getIdToken(); // Firebase token
+        const userInfo = {
+          id: user.uid,
+          email: user.email || "",
+          name: user.displayName || "User",
+        };
+
+        login(token, userInfo);
+        router.push("/");
+      }
+    } catch (error: unknown) {
+      console.error("Login error:", error);
+      let errorMessage = "Login failed. Please try again.";
+      
+      if (error instanceof Error && 'code' in error) {
+        const firebaseError = error as { code: string };
+        
+        if (firebaseError.code === 'auth/invalid-credential') {
+          errorMessage = "Invalid email or password.";
+        } else if (firebaseError.code === 'auth/user-not-found') {
+          errorMessage = "User not found. Please sign up.";
+        } else if (firebaseError.code === 'auth/wrong-password') {
+          errorMessage = "Incorrect password.";
+        }
+      }
+      
+      alert(errorMessage);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const user = userCredential.user;
+      
+      if (user) {
+        const token = await user.getIdToken();
+        const userInfo = {
+          id: user.uid,
+          email: user.email || "",
+          name: user.displayName || "User",
         };
         login(token, userInfo);
         router.push("/");
-      } else if (username === "test2" && password === "password2") {
-        const token = "dummy-jwt-token2";
-        const userInfo = { 
-          id: "456", 
-          email: "test2@example.com", 
-          name: username 
-        };
-        login(token, userInfo);
-        router.push("/");
-      } else if (username === "test3" && password === "password3") {
-        const token = "dummy-jwt-token3";
-        const userInfo = { 
-          id: "789", 
-          email: "test3@example.com", 
-          name: username 
-        };
-        login(token, userInfo);
-        router.push("/");
-      } else {
-        alert("Invalid credentials!");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert("An error occurred during login");
+      console.error("Google login error:", error);
+      alert("Google login failed");
     }
   };
 
@@ -56,11 +76,11 @@ export default function LoginPage() {
         <h2 className="text-2xl font-semibold text-center">Login</h2>
         <div className="space-y-2">
           <input
-            type="text"
-            placeholder="Username"
+            type="email"
+            placeholder="Email"
             className="w-full p-3 text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div className="space-y-2">
@@ -77,6 +97,13 @@ export default function LoginPage() {
           className="w-full p-3 bg-blue-500 text-white text-lg rounded-md hover:bg-blue-600 transition-colors"
         >
           Login
+        </button>
+        <button 
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full p-3 bg-red-500 text-white text-lg rounded-md hover:bg-red-600 transition-colors"
+        >
+          Sign in with Google
         </button>
       </form>
     </div>
