@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { auth } from "@/lib/firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 interface User {
   id: string;
@@ -22,16 +24,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-  
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const token = await firebaseUser.getIdToken();
+        const userInfo = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName || "User",
+        };
+        setToken(token);
+        setUser(userInfo);
+        setIsAuthenticated(true);
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(userInfo));
+      } else {
+        setToken(null);
+        setUser(null);
+        setIsAuthenticated(false);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = (newToken: string, userInfo: User) => {
@@ -42,13 +61,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("user", JSON.stringify(userInfo));
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const logout = async () => {
+    try {
+      await auth.signOut();
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, token, user, login, logout }}>
