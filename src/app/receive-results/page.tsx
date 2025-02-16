@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,9 @@ import { useAuth } from "@/context/authContext";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import MessageWindow from "@/app/receive-results/messagewindow";
-import Image from "next/image"; // Add this import for Image handling
-import { Suspense } from "react";
+import Image from "next/image";
+import ErrorComponent from "@/components/ui/error";
+export const dynamic = 'force-dynamic';
 
 interface MatchItem {
   id: string;
@@ -27,15 +28,7 @@ interface PendingMessage {
   timestamp: Date;
 }
 
-function ReceiveResultsWrapper() {
-  return (
-    <Suspense fallback={<p>Loading...</p>}>
-      <ReceiveResults />
-    </Suspense>
-  );
-}
-
-export default function ReceiveResults() {
+function ReceiveResultsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [items, setItems] = useState<MatchItem[]>([]);
@@ -157,11 +150,11 @@ export default function ReceiveResults() {
       {/* Logo */}
       <div className="absolute top-8 left-8 cursor-pointer" onClick={() => router.push('/')}>
         <Image
-          src="/favicon.ico" // Path to your logo in the public folder
+          src="/favicon.ico"
           alt="Logo"
-          width={60} // Adjust the size as needed
+          width={60}
           height={60}
-          className="rounded-full" // Optional: Add styling if needed
+          className="rounded-full"
         />
       </div>
 
@@ -258,5 +251,15 @@ export default function ReceiveResults() {
         </>
       )}
     </div>
+  );
+}
+
+export default function ReceiveResults() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading results...</div>}>
+      <ErrorComponent>
+        <ReceiveResultsContent />
+      </ErrorComponent>
+    </Suspense>
   );
 }
