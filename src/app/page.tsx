@@ -86,6 +86,7 @@ export default function HomePage() {
     if (!userName.trim()) missingFields.push("User name");
     if (!product.trim()) missingFields.push("Product name");
     if (!category.trim()) missingFields.push("Category");
+    if (!details.trim()) missingFields.push("Details");
 
     // Handle Other category
     const finalCategory = category === "Other" && otherCategoryDescription 
@@ -132,7 +133,7 @@ export default function HomePage() {
             product: product.trim(),
             category: finalCategory,
             distance: parseInt(distance) || 0,
-            ...(details.trim() ? { details: details.trim() } : {}),
+            details: details.trim(),
           })
         });
 
