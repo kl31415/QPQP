@@ -228,7 +228,7 @@ export default function HomePage() {
           }}
           className="px-16 py-8 text-3xl"
         >
-          Offer
+          GIVE FREE STUFF
         </Button>
         <Button
           onClick={() => {
@@ -240,7 +240,7 @@ export default function HomePage() {
           }}
           className="px-16 py-8 text-3xl"
         >
-          Receive
+          GET FREE STUFF
         </Button>
       </motion.div>
 
@@ -248,11 +248,11 @@ export default function HomePage() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-20">
           <Card className="p-8 w-full max-w-2xl bg-white dark:bg-gray-900 rounded-lg shadow-lg relative">
             <h2 className="text-3xl font-semibold mb-8">
-              {showOfferForm ? 'Create Offer' : 'Find Product'}
+              {showOfferForm ? 'My Offer' : 'My Request'}
             </h2>
 
             <Input
-              placeholder="Product Name"
+              placeholder="What good or service is it?"
               className="mb-6 text-xl"
               value={product}
               onChange={(e) => setProduct(e.target.value)}
@@ -261,7 +261,7 @@ export default function HomePage() {
 
             <Input
               type="number"
-              placeholder="Distance (miles)"
+              placeholder="How far are you willing to travel? (mi)"
               className="mb-6 text-xl"
               value={distance}
               onChange={(e) => setDistance(Math.max(0, parseInt(e.target.value) || 0).toString())}
@@ -282,17 +282,18 @@ export default function HomePage() {
                 required
               >
                 <option value="">Select Category</option>
+                <option value="Books">Books</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Collectibles">Collectibles</option>
                 <option value="Electronics">Electronics</option>
                 <option value="Furniture">Furniture</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Books">Books</option>
                 <option value="Food">Food</option>
                 <option value="Other">Other</option>
               </select>
               
               {category === "Other" && (
                 <Input
-                  placeholder="Please specify your category"
+                  placeholder="Please specify your category (more coming soon!)"
                   className="mt-4 text-xl"
                   value={otherCategoryDescription.replace(/^other: /i, '')} // Remove prefix for display
                   onChange={(e) => {
@@ -309,7 +310,7 @@ export default function HomePage() {
             </div>
 
             <Textarea
-              placeholder="Additional Details"
+              placeholder="Questions? Comments? Concerns? A light-hearted joke, perhaps?"
               className="mb-6 text-xl"
               value={details}
               onChange={(e) => setDetails(e.target.value)}
@@ -326,13 +327,13 @@ export default function HomePage() {
                 variant="outline" 
                 className="px-6 py-2 text-xl"
               >
-                Cancel
+                CANCEL
               </Button>
               <Button 
                 onClick={() => handleFormSubmission(showReceiveForm)} 
                 className="px-6 py-2 text-xl"
               >
-                Done
+                SUBMIT
               </Button>
             </div>
           </Card>

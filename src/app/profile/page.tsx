@@ -9,17 +9,16 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { History, Clock, Package, User, ShoppingCart, ArrowLeft } from 'lucide-react';
-import Link from 'next/link'; // Import Link for navigation
+import Link from 'next/link';
 
-// Mock data - replace with actual API calls
 const mockRequests = [
-  { id: 1, title: 'iPhone repair', date: '2024-03-15', status: 'Completed', category: 'Electronics' },
-  { id: 2, title: 'Vintage chair', date: '2024-03-14', status: 'Pending', category: 'Furniture' },
+  { id: 1, title: 'More... sleep...', date: '2025-02-16', status: 'Pending', category: 'Other' },
+  { id: 2, title: 'MERCH! MERCH!! MERCH!!!', date: '2025-02-15', status: 'Completed', category: 'Collectibles' },
 ];
 
 const mockOffers = [
-  { id: 1, title: 'MacBook Pro 2020', date: '2024-03-16', status: 'Active', category: 'Electronics' },
-  { id: 2, title: 'Designer dress', date: '2024-03-13', status: 'Completed', category: 'Clothing' },
+  { id: 1, title: 'Extra AA Batteries (4 from 8-pack)', date: '2025-02-16', status: 'Completed', category: 'Electronics' },
+  { id: 2, title: 'oops I grabbed too many snacks', date: '2025-02-15', status: 'Active', category: 'Food' },
 ];
 
 export default function ProfilePage() {
@@ -27,13 +26,42 @@ export default function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [requests, setRequests] = useState(mockRequests);
   const [offers, setOffers] = useState(mockOffers);
+  const [memberSince, setMemberSince] = useState('');
+
+  useEffect(() => {
+    // Set initial member since date when component mounts
+    const currentDate = new Date();
+    const defaultMemberSince = `${currentDate.toLocaleString('default', { month: 'long' })} ${currentDate.getFullYear()}`;
+    
+    // Get user's member since date from localStorage or set current date
+    const storedMemberSince = localStorage.getItem('memberSince');
+    if (!storedMemberSince) {
+      localStorage.setItem('memberSince', defaultMemberSince);
+      setMemberSince(defaultMemberSince);
+    } else {
+      // Compare stored date with current date and use the earlier one
+      const storedDate = new Date(storedMemberSince);
+      const currentDate = new Date();
+      const earlierDate = storedDate < currentDate ? storedDate : currentDate;
+      setMemberSince(`${earlierDate.toLocaleString('default', { month: 'long' })} ${earlierDate.getFullYear()}`);
+    }
+
+    // Load saved avatar from localStorage
+    const savedAvatar = localStorage.getItem('userAvatar');
+    if (savedAvatar) {
+      setAvatarPreview(savedAvatar);
+    }
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
+        const result = reader.result as string;
+        setAvatarPreview(result);
+        // Save avatar to localStorage
+        localStorage.setItem('userAvatar', result);
       };
       reader.readAsDataURL(file);
     }
@@ -43,7 +71,6 @@ export default function ProfilePage() {
     window.history.back();
   };
 
-  // Stats calculations
   const stats = {
     totalRequests: requests.length,
     totalOffers: offers.length,
@@ -58,11 +85,11 @@ export default function ProfilePage() {
         <Link href="/" passHref>
           <div className="absolute top-8 left-8 cursor-pointer">
             <Image
-              src="/favicon.ico" // Path to your logo in the public folder
+              src="/favicon.ico"
               alt="Logo"
-              width={60} // Adjust the size as needed
+              width={60}
               height={60}
-              className="rounded-full" // Optional: Add styling if needed
+              className="rounded-full"
             />
           </div>
         </Link>
@@ -105,7 +132,7 @@ export default function ProfilePage() {
             <p className="text-muted-foreground mt-2">{user?.email}</p>
             <p className="flex items-center gap-2 mt-2">
               <Clock className="w-4 h-4" />
-              Member since March 2024
+              Member since {memberSince}
             </p>
           </div>
         </div>
