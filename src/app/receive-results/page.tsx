@@ -20,6 +20,7 @@ interface MatchItem {
   details: string;
   userId: string;
   userName: string;
+  similarity: number;
 }
 
 interface PendingMessage {
@@ -44,12 +45,6 @@ function ReceiveResultsContent() {
   const itemsPerPage = 4;
 
   const totalPages = Math.ceil(items.length / itemsPerPage);
-  
-  const getCurrentPageItems = () => {
-    const start = currentPage * itemsPerPage;
-    const end = start + itemsPerPage;
-    return items.slice(start, end);
-  };
 
   useEffect(() => {
     const fetchPendingMessages = async () => {
@@ -89,7 +84,7 @@ function ReceiveResultsContent() {
       toast({
         variant: "destructive",
         title: "Session Expired",
-        description: "Please login again",
+        description: "Please login again!",
         action: <ToastAction altText="Login" onClick={() => router.push('/login')}>Login</ToastAction>,
       });
       logout();
@@ -104,7 +99,7 @@ function ReceiveResultsContent() {
 
       try {
         const params = {
-          product: searchParams.get('product') || '',
+          product: `${searchParams.get('product') || ''} (${searchParams.get('userName')})`.trim(),
           category: searchParams.get('category') || '',
           distance: searchParams.get('distance') || '0',
           details: searchParams.get('details') || ''
@@ -123,6 +118,7 @@ function ReceiveResultsContent() {
 
         const data = await response.json();
         setItems(data);
+
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         setError(errorMessage);
@@ -140,15 +136,21 @@ function ReceiveResultsContent() {
     fetchData();
   }, [searchParams, toast]);
 
+  const getCurrentPageItems = () => {
+    const start = currentPage * itemsPerPage;
+    const end = start + itemsPerPage;
+    return items.slice(start, end);
+  };
+
   const handleContactClick = (userId: string, userName: string) => {
     setActiveChat(userId);
     setActiveChatName(userName);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-background p-8">
+    <div className="min-h-screen flex flex-col bg-background">
       {/* Logo */}
-      <div className="absolute top-8 left-8 cursor-pointer" onClick={() => router.push('/')}>
+      <div className="absolute top-8 left-8 cursor-pointer z-10" onClick={() => router.push('/')}>
         <Image
           src="/favicon.ico"
           alt="Logo"
@@ -158,98 +160,105 @@ function ReceiveResultsContent() {
         />
       </div>
 
-      <h1 className="text-4xl font-bold mb-6">Results</h1>
+      <div className="flex flex-col items-center w-full h-screen py-4">
+        <h1 className="text-4xl font-bold mb-6 mt-2">RESULTS</h1>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center">
-          <p className="text-lg">Loading...</p>
-        </div>
-      ) : error ? (
-        <div className="text-red-500 text-center p-4">
-          <p>{error}</p>
-          <Button 
-            onClick={() => router.push('/')} 
-            className="mt-4"
-            variant="outline"
-          >
-            Return Home
-          </Button>
-        </div>
-      ) : items.length === 0 ? (
-        <div className="text-center p-4">
-          <p className="mb-4">No matches found</p>
-          <Button 
-            onClick={() => router.push('/')} 
-            className="mt-2"
-            variant="outline"
-          >
-            New Search
-          </Button>
-        </div>
-      ) : (
-        <>
-          <div className="w-full max-w-6xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center flex-1">
+            <p className="text-lg">Loading...</p>
+          </div>
+        ) : error ? (
+          <div className="text-red-500 text-center p-4 flex-1">
+            <p>{error}</p>
+            <Button 
+              onClick={() => router.push('/')} 
+              className="mt-4"
+              variant="outline"
+            >
+              Return Home
+            </Button>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="text-center p-4 flex-1">
+            <p className="mb-4">No matches found</p>
+            <Button 
+              onClick={() => router.push('/')} 
+              className="mt-2"
+              variant="outline"
+            >
+              New Search
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center w-full flex-1 px-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-[90vw] flex-1 mb-6">
               {getCurrentPageItems().map((item) => (
-                <Card key={item.id} className="p-6">
-                  <h2 className="text-2xl font-semibold mb-3">{item.product}</h2>
-                  <div className="space-y-2">
-                    <p><strong>Category:</strong> {item.category}</p>
-                    <p><strong>Distance:</strong> {item.distance} miles</p>
-                    <p><strong>Details:</strong> {item.details}</p>
-                    <Button 
-                      onClick={() => handleContactClick(item.userId, item.userName)}
-                      className="mt-4"
-                    >
-                      Contact
-                    </Button>
+                <Card key={item.id} className="p-8 flex flex-col justify-between">
+                  <div>
+                    <h2 className="text-3xl font-semibold mb-4">{item.product}</h2>
+                    <div className="space-y-3 text-lg">
+                      <p><strong>Category:</strong> {item.category}</p>
+                      <p><strong>Distance:</strong> {item.distance} miles</p>
+                      <p><strong>Details:</strong> {item.details}</p>
+                    </div>
                   </div>
+                  <Button 
+                    onClick={() => handleContactClick(item.userId, item.userName)}
+                    className="mt-6 py-6 text-lg"
+                    size="lg"
+                  >
+                    CONTACT
+                  </Button>
                 </Card>
               ))}
             </div>
             
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-6 space-x-4">
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                  disabled={currentPage === 0}
-                  variant="outline"
-                >
-                  Previous
-                </Button>
-                <span className="flex items-center">
-                  Page {currentPage + 1} of {totalPages}
-                </span>
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                  disabled={currentPage === totalPages - 1}
-                  variant="outline"
-                >
-                  Next
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          <Button 
-            onClick={() => router.push('/')} 
-            className="mt-6"
-            variant="outline"
-          >
-            Back
-          </Button>
+            <div className="flex flex-col items-center gap-4 mb-4">
+              {totalPages > 1 && (
+                <div className="flex justify-center space-x-4 mb-4">
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                    disabled={currentPage === 0}
+                    variant="outline"
+                    size="lg"
+                  >
+                    Previous
+                  </Button>
+                  <span className="flex items-center text-lg">
+                    Page {currentPage + 1} of {totalPages}
+                  </span>
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                    disabled={currentPage === totalPages - 1}
+                    variant="outline"
+                    size="lg"
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
 
-          <MessageWindow
-            recipientId={activeChat || ''}
-            recipientName={activeChatName}
-            isOpen={!!activeChat}
-            onClose={() => {
-              setActiveChat(null);
-              setActiveChatName('');
-            }}
-          />
-        </>
-      )}
+              <Button 
+                onClick={() => router.push('/')} 
+                variant="outline"
+                size="lg"
+              >
+                Back
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <MessageWindow
+        recipientId={activeChat || ''}
+        recipientName={activeChatName}
+        isOpen={!!activeChat}
+        onClose={() => {
+          setActiveChat(null);
+          setActiveChatName('');
+        }}
+      />
     </div>
   );
 }

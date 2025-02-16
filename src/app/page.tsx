@@ -26,6 +26,7 @@ export default function HomePage() {
   const { isAuthenticated, user, token, logout } = useAuth();
   const controls = useAnimation();
   const { toast } = useToast();
+  const [userName, setUserName] = useState("");
 
   const text = "I want to...";
 
@@ -62,6 +63,13 @@ export default function HomePage() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Update userName state when user changes
+  useEffect(() => {
+    if (user?.name) {
+      setUserName(user.name);
+    }
+  }, [user]);
+
   const handleFormSubmission = async (isReceive: boolean) => {
     if (!isAuthenticated) {
       toast({
@@ -75,9 +83,9 @@ export default function HomePage() {
 
     // Validate required fields
     const missingFields = [];
+    if (!userName.trim()) missingFields.push("User name");
     if (!product.trim()) missingFields.push("Product name");
     if (!category.trim()) missingFields.push("Category");
-    if (!details.trim()) missingFields.push("Details");
 
     // Handle Other category
     const finalCategory = category === "Other" && otherCategoryDescription 
@@ -108,7 +116,7 @@ export default function HomePage() {
           product: product.trim(),
           category: finalCategory,
           distance: distance.trim() || '0',
-          details: details.trim()
+          details: details.trim(),
         });
         router.push(`/receive-results?${params}`);
       } else {
@@ -120,11 +128,11 @@ export default function HomePage() {
           },
           body: JSON.stringify({
             userId: user?.id,
-            name: user?.name,
+            userName: userName.trim(),
             product: product.trim(),
             category: finalCategory,
             distance: parseInt(distance) || 0,
-            details: details.trim(),
+            ...(details.trim() ? { details: details.trim() } : {}),
           })
         });
 
@@ -139,14 +147,14 @@ export default function HomePage() {
 
         toast({
           title: "Success!",
-          description: "Your offer has been submitted",
+          description: "Your offer has been submitted!",
         });
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Submission Failed",
-        description: "Please try again later",
+        description: "Please try again later :(",
         action: <ToastAction altText="Retry" onClick={() => handleFormSubmission(isReceive)}>Retry</ToastAction>,
       });
     }
