@@ -5,6 +5,7 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 interface User {
   id: string;
   email: string;
+  name: string; // Added name field
 }
 
 interface AuthContextType {
@@ -34,12 +35,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = (newToken: string, userInfo: User) => {
-    // Store in state
     setToken(newToken);
     setUser(userInfo);
     setIsAuthenticated(true);
-
-    // Store in localStorage
     localStorage.setItem("token", newToken);
     localStorage.setItem("user", JSON.stringify(userInfo));
   };

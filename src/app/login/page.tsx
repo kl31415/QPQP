@@ -16,13 +16,30 @@ export default function LoginPage() {
     try {
       if (username === "test" && password === "password") {
         const token = "dummy-jwt-token";
-        const userInfo = { id: "123", email: "test@example.com" };
-        login(token, userInfo);  // ✅ Pass user data
-  
-        // Verify if login is successful
-        console.log('User logged in:', userInfo);
-  
-        // Redirect after login
+        const userInfo = { 
+          id: "123", 
+          email: "test@example.com", 
+          name: username 
+        };
+        login(token, userInfo);
+        router.push("/");
+      } else if (username === "test2" && password === "password2") {
+        const token = "dummy-jwt-token2";
+        const userInfo = { 
+          id: "456", 
+          email: "test2@example.com", 
+          name: username 
+        };
+        login(token, userInfo);
+        router.push("/");
+      } else if (username === "test3" && password === "password3") {
+        const token = "dummy-jwt-token3";
+        const userInfo = { 
+          id: "789", 
+          email: "test3@example.com", 
+          name: username 
+        };
+        login(token, userInfo);
         router.push("/");
       } else {
         alert("Invalid credentials!");
